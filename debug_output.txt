@@ -1,0 +1,157 @@
+--- TRADING LOGIC ---
+Trading Logic
+Welcome
+Market Dashboard
+SP100 Intelligence
+Short Interest
+About
+Wiki
+Discord
+Hourly · 9:43 AM ET
+🇺🇸/🇬🇧 EN
+简体 中文
+🇫🇷/🇨🇦 FR
+🇩🇪 DE
+🇪🇸 ES
+💻
+$ Pro
+👤
+✦ Breadth AI Narrative
+As of 09:33 AM EDT · Hourly
+
+Overall market breadth remains bearish
+
+News Sources:
+↗ heygotrade.com
+↗ tipranks.com
+↗ tipranks.com
+↗ thestreet.com
+↗ zacks.com
+↗ simplywall.st
+↗ federalreserve.gov
+↗ seekingalpha.com
+Breadth Breakdown
+Total Score
+212 / 1100
+Market Trends
+1Y
+2Y
+3Y
+5Y
+MAX
+Breadth Table
+Date	
+SPX
+	
+COM
+	
+CND
+	
+CNS
+	
+ENE
+	
+FIN
+	
+HLT
+	
+IND
+	
+MAT
+	
+REI
+	
+TEC
+	
+UTL
+	Breadth
+2026-03-23	17	30	11	3	82	14	7	8	16	0	41	0	
+212
+
+2026-03-20	13	26	6	3	77	9	2	4	15	0	31	0	
+173
+
+2026-03-19	19	26	12	6	95	8	2	10	15	10	44	23	
+251
+
+2026-03-18	18	26	12	8	73	7	3	9	19	16	34	42	
+249
+
+2026-03-17	27	39	17	8	91	18	7	11	27	29	46	74	
+367
+
+2026-03-16	25	30	10	14	86	13	5	10	23	23	46	81	
+341
+
+2026-03-13	22	35	15	17	86	9	3	8	27	10	36	71	
+317
+
+2026-03-12	21	35	15	11	77	7	7	10	23	10	37	52	
+284
+
+2026-03-11	27	57	23	11	91	11	18	16	19	
+
+--- AAII ---
+
+--- TRUFLATION ---
+Indexes
+Reports
+Resources
+Pricing
+Search indexes
+/
+Watchlist
+Join for Free
+Log in
+Truflation US CPI Inflation Index
+TruCPI-US
+913
+Index
+Composition
+28
+Factsheet
+Docs
+Start Calculating
+
+Year over year
+
+Aggregated
+
+Download
+Truflation US CPI Inflation Index
+TruCPI-US
+Updated March 23 2026
+Year over year change updating daily
+1.73%
+-0.01
+BLS reported rate: 2.40%
+0.68%
+1.95%
+YTD LOW
+YTD HIGH
+Powered by TRUF.NETWORK
+Compare
+1M
+6M
+1Y
+3Y
+5Y
+MAX
+Custom
+Categories
+%
+
+Sign in to see last
+30 days of data
+
+Truflation US CPI Inflation Index
+
+Goods
+
+Core
+
+Services
+
+PCE
+
+About Truflation US CPI Inflation
