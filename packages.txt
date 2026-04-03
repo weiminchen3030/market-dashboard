@@ -4,3 +4,14 @@ libasound2
 libatk-bridge2.0-0
 libgtk-3-0
 libgbm-dev
+chromium-browser
+libglib2.0-0
+libnss3-dev
+libatk1.0-0
+libcups2
+libdrm2
+libxkbcommon0
+libxcomposite1
+libxdamage1
+libxfixes3
+libxrandr2
