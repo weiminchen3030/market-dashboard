@@ -3,12 +3,13 @@ import sys
 import json
 import requests
 from bs4 import BeautifulSoup
-import yfinance as yf
 import pandas as pd
 import io
 import logging
 import re
 import os
+
+from data_fetcher import get_stock_data
 
 logging.basicConfig(level=logging.WARNING)
 HEADERS = {
@@ -48,8 +49,8 @@ def get_naaim():
 
 def get_vix_data():
     try:
-        vix  = yf.Ticker("^VIX").history(period="1d")
-        vvix = yf.Ticker("^VVIX").history(period="1d")
+        vix  = get_stock_data("^VIX", period="2d")
+        vvix = get_stock_data("^VVIX", period="2d")
         if not vix.empty and not vvix.empty:
             v, vv = round(vix['Close'].iloc[-1], 2), round(vvix['Close'].iloc[-1], 2)
             return {"VIX": v, "VVIX": vv, "VIX/VVIX": round(v / vv, 4)}
@@ -148,7 +149,7 @@ def get_td_sequential():
     results = {}
     for sym in symbols:
         try:
-            hist = yf.Ticker(sym).history(period="1y")
+            hist = get_stock_data(sym, period="1y")
             hist.index = hist.index.tz_localize(None) if hist.index.tzinfo else hist.index
             hist = hist[hist.index.dayofweek < 5]
             if len(hist) > 13:

@@ -1,6 +1,6 @@
 import streamlit as st
-import yfinance as yf
 import pandas as pd
+from data_fetcher import get_stock_data
 
 from demark_backtest import calc_ma, calc_demark, calc_rsi, backtest_dca, plot_chart
 
@@ -23,10 +23,14 @@ def fetch_and_process_data(ticker, lev_ticker, years=10):
     fetch_start_date = test_start_date - pd.DateOffset(days=200)
 
     try:
-        df = yf.download(ticker, start=fetch_start_date, end=end_date, progress=False)
-        vix_df = yf.download('^VIX', start=fetch_start_date, end=end_date, progress=False)
-        lev_df = yf.download(lev_ticker, start=fetch_start_date, end=end_date, progress=False)
+        # Utilize robust fetcher that falls back to Finnhub / Alpha Vantage
+        df = get_stock_data(ticker, start_date=fetch_start_date, end_date=end_date)
+        vix_df = get_stock_data('^VIX', start_date=fetch_start_date, end_date=end_date)
+        lev_df = get_stock_data(lev_ticker, start_date=fetch_start_date, end_date=end_date)
         
+        if df is None or df.empty:
+            raise ValueError(f"Failed to fetch base ticker {ticker}")
+            
         if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.droplevel(1)
         if isinstance(vix_df.columns, pd.MultiIndex): vix_df.columns = vix_df.columns.droplevel(1)
         if isinstance(lev_df.columns, pd.MultiIndex): lev_df.columns = lev_df.columns.droplevel(1)
