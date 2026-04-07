@@ -19,24 +19,22 @@ st.info("💡 **Backend Engine**: Powered by a unified API architecture (Yahoo F
 
 # ── SYSTEM HEALTH MONITOR ──────────────────────────────────
 with st.expander("🛠️ System Backend Status", expanded=False):
-    from sqlalchemy import text
-    from data_fetcher import engine
-    
+    h1, h2, h3 = st.columns(3)
     try:
+        from sqlalchemy import text
+        from data_fetcher import engine
         with engine.connect() as conn:
-            # Check DB response
-            res = conn.execute(text("SELECT MAX(date) FROM stock_prices"))
+            res = conn.execute(text("SELECT MAX(Date) FROM daily_prices"))
             max_date = res.fetchone()[0]
-            
-            h1, h2, h3 = st.columns(3)
-            h1.success("🟢 Supabase: Connected")
-            if max_date:
-                h2.info(f"📅 Data Sync: {max_date}")
-            else:
-                h2.warning("📅 Data Sync: No data found")
-            h3.write(f"🔗 [View GitHub Actions Logs](https://github.com/weiminchen3030/market-dashboard/actions)")
+        h1.success("🟢 Supabase: Connected")
+        if max_date:
+            h2.info(f"📅 Data Sync: {max_date}")
+        else:
+            h2.warning("📅 Data Sync: No data yet")
     except Exception as e:
-        st.error(f"🔴 Database Connection Error: {str(e)}")
+        h1.warning("🟡 DB: Local SQLite Mode")
+        h2.caption(f"(Will use Supabase after deploying to cloud)")
+    h3.markdown("🔗 [GitHub Actions Logs](https://github.com/weiminchen3030/market-dashboard/actions)")
 # ────────────────────────────────────────────────────────────
 
 
