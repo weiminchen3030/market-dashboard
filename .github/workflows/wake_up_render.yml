@@ -1,21 +1,28 @@
-name: Wake up Render App
+name: Render App Optimizer (Wake up & Refresh)
 
 on:
   schedule:
-    # 這裡使用 UTC 時間 (目前美東夏令時間為 UTC-4)
-    # 1. 早盤 09:30 ET -> 13:30 UTC
+    # 這裡使用 UTC 時間 (美東夏令時間為 UTC-4)
+    # 1. 早盤 09:30 ET -> 13:30 UTC: 觸發全面刷新部署 (Deploy Hook)
     - cron: '30 13 * * 1-5'
-    # 2. 盤中 12:00 ET -> 16:00 UTC
+    # 2. 盤中 12:00 ET -> 16:00 UTC: 快速喚醒 (Web URL)
     - cron: '0 16 * * 1-5'
-    # 3. 收盤前30分 15:30 ET -> 19:30 UTC
+    # 3. 收盤前30分 15:30 ET -> 19:30 UTC: 快速喚醒 (Web URL)
     - cron: '30 19 * * 1-5'
   workflow_dispatch: # 允許手動測試觸發
 
 jobs:
-  wake-up:
+  optimize-render:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render App
+      - name: Execute Optimization
         run: |
-          # 請將下面的網址替換成你的真實 Render 網址
-          curl -I https://market-dashboard.onrender.com
+          # 判斷目前時間點執行不同指令
+          HOUR=$(date +%H)
+          if [ "$HOUR" -eq 13 ]; then
+            echo "🚀 Market Open: Triggering fresh Deploy Hook..."
+            curl -X POST "https://api.render.com/sync/exs-d7ainhidbo4c73a99n1g?key=JGD-rODMeG8"
+          else
+            echo "🔔 Market Session: Waking up Web Service..."
+            curl -I https://market-dashboard-84dk.onrender.com
+          fi
