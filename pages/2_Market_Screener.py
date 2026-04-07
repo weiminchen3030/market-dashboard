@@ -17,6 +17,28 @@ This screener scans 500+ stocks in real-time to identify **Buy / Sell** signals 
 
 st.info("💡 **Backend Engine**: Powered by a unified API architecture (Yahoo Finance with automated fallback to Finnhub & Alpha Vantage during rate limits).")
 
+# ── SYSTEM HEALTH MONITOR ──────────────────────────────────
+with st.expander("🛠️ System Backend Status", expanded=False):
+    from sqlalchemy import text
+    from data_fetcher import engine
+    
+    try:
+        with engine.connect() as conn:
+            # Check DB response
+            res = conn.execute(text("SELECT MAX(date) FROM stock_prices"))
+            max_date = res.fetchone()[0]
+            
+            h1, h2, h3 = st.columns(3)
+            h1.success("🟢 Supabase: Connected")
+            if max_date:
+                h2.info(f"📅 Data Sync: {max_date}")
+            else:
+                h2.warning("📅 Data Sync: No data found")
+            h3.write(f"🔗 [View GitHub Actions Logs](https://github.com/weiminchen3030/market-dashboard/actions)")
+    except Exception as e:
+        st.error(f"🔴 Database Connection Error: {str(e)}")
+# ────────────────────────────────────────────────────────────
+
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_screener_results(list_name):
