@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: market-dashboard
+    env: python
+    region: singapore # 離台灣較近，延遲較低
+    plan: free
+    buildCommand: pip install -r requirements.txt && playwright install chromium
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: SUPABASE_DATABASE_URI
+        sync: false # 請在 Render 後台手動貼入
+      - key: PYTHON_VERSION
+        value: 3.10.12
