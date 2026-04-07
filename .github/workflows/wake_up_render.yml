@@ -1,0 +1,21 @@
+name: Wake up Render App
+
+on:
+  schedule:
+    # 這裡使用 UTC 時間 (目前美東夏令時間為 UTC-4)
+    # 1. 早盤 09:30 ET -> 13:30 UTC
+    - cron: '30 13 * * 1-5'
+    # 2. 盤中 12:00 ET -> 16:00 UTC
+    - cron: '0 16 * * 1-5'
+    # 3. 收盤前30分 15:30 ET -> 19:30 UTC
+    - cron: '30 19 * * 1-5'
+  workflow_dispatch: # 允許手動測試觸發
+
+jobs:
+  wake-up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render App
+        run: |
+          # 請將下面的網址替換成你的真實 Render 網址
+          curl -I https://market-dashboard.onrender.com
