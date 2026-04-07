@@ -8,3 +8,4 @@ playwright
 resend
 SQLAlchemy
 psycopg2-binary
+fpdf2==2.7.9
