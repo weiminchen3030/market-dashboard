@@ -6,3 +6,4 @@ venv/
 env/
 .venv/
 .streamlit/credentials.toml
+stock_cache.db

@@ -1,0 +1,10 @@
+# Minimal requirements for GitHub Actions screener job
+# Excludes playwright, psycopg2, streamlit (not needed for send_daily_report.py)
+pandas
+yfinance
+fpdf2==2.7.9
+resend
+SQLAlchemy
+python-dotenv
+requests
+streamlit

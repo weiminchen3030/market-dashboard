@@ -1,0 +1,49 @@
+name: Daily Market Screener Report
+
+on:
+  schedule:
+    # 19:30 UTC = 2:30 PM CDT (UTC-5) = 30 min before US market close (4 PM EDT / 3 PM CDT)
+    - cron: '30 19 * * 1-5'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub UI for testing
+
+jobs:
+  screener:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-screener-${{ hashFiles('requirements-screener.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-screener-
+
+      - name: Install dependencies
+        run: pip install -r requirements-screener.txt
+
+      - name: Run screener and send report
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          # "from github" — differentiate from the local Mac report
+          FROM_EMAIL: "GitHub Actions <onboarding@resend.dev>"
+        run: python send_daily_report.py
+
+      - name: Upload log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screener-error-log
+          path: /tmp/screener_*.pdf
+          if-no-files-found: ignore

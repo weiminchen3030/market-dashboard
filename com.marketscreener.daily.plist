@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.marketscreener.daily.plist
+  ────────────────────────────────────────────────────────────────────────────
+  Runs the market screener report every weekday at 14:30 CDT
+  (= 30 min before US market close at 15:00 CDT / 16:00 EDT).
+
+  To install:
+    cp com.marketscreener.daily.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.marketscreener.daily.plist
+
+  To uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.marketscreener.daily.plist
+    rm ~/Library/LaunchAgents/com.marketscreener.daily.plist
+
+  To test immediately (triggers the job right now):
+    launchctl start com.marketscreener.daily
+
+  Logs:
+    stdout → ~/Library/Logs/market_screener.log
+    stderr → ~/Library/Logs/market_screener_error.log
+  ────────────────────────────────────────────────────────────────────────────
+-->
+<plist version="1.0">
+<dict>
+    <!-- Unique label for this job -->
+    <key>Label</key>
+    <string>com.marketscreener.daily</string>
+
+    <!-- Command to run: venv Python → send_daily_report.py -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/wei-minchen/Desktop/Antigravity/market-dashboard-main/venv/bin/python</string>
+        <string>/Users/wei-minchen/Desktop/Antigravity/market-dashboard-main/send_daily_report.py</string>
+    </array>
+
+    <!-- Working directory (so relative imports resolve correctly) -->
+    <key>WorkingDirectory</key>
+    <string>/Users/wei-minchen/Desktop/Antigravity/market-dashboard-main</string>
+
+    <!--
+      Schedule: Mon–Fri at 14:30 local time (CDT = UTC-5)
+      launchd Weekday: 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri
+      If you are in ET (not CDT), change Hour to 15.
+    -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Weekday</key><integer>1</integer>
+            <key>Hour</key><integer>14</integer>
+            <key>Minute</key><integer>30</integer>
+        </dict>
+        <dict>
+            <key>Weekday</key><integer>2</integer>
+            <key>Hour</key><integer>14</integer>
+            <key>Minute</key><integer>30</integer>
+        </dict>
+        <dict>
+            <key>Weekday</key><integer>3</integer>
+            <key>Hour</key><integer>14</integer>
+            <key>Minute</key><integer>30</integer>
+        </dict>
+        <dict>
+            <key>Weekday</key><integer>4</integer>
+            <key>Hour</key><integer>14</integer>
+            <key>Minute</key><integer>30</integer>
+        </dict>
+        <dict>
+            <key>Weekday</key><integer>5</integer>
+            <key>Hour</key><integer>14</integer>
+            <key>Minute</key><integer>30</integer>
+        </dict>
+    </array>
+
+    <!-- Log stdout and stderr to files -->
+    <key>StandardOutPath</key>
+    <string>/Users/wei-minchen/Library/Logs/market_screener.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/wei-minchen/Library/Logs/market_screener_error.log</string>
+
+    <!-- Keep the job alive on failure? No — let it run once and exit -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- Don't run if machine is on battery (optional — remove if needed) -->
+    <!-- <key>PreventSleep</key><true/> -->
+
+</dict>
+</plist>
