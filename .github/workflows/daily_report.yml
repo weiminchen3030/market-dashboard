@@ -2,8 +2,8 @@ name: Daily PDF Market Report
 
 on:
   schedule:
-    # 每天收盤後半小時執行 (16:30 ET -> 20:30 UTC)
-    - cron: '30 20 * * 1-5'
+    # 每天中部時間 (CT) 早上 8:30 執行 (對應夏令時間 UTC 13:30)
+    - cron: '30 13 * * 1-5'
   workflow_dispatch: # 允許手動從 Actions 頁面點擊測試
 
 jobs:

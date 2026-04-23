@@ -4,7 +4,7 @@ import base64
 from datetime import datetime
 from fpdf import FPDF
 from scrapers import get_crypto_fng, get_naaim, get_vix_data, get_td_sequential, scrape_with_playwright
-from market_screener import run_screener, WATCH_LIST
+from market_screener import run_screener, WATCH_LIST, SP500_LIST, NASDAQ100_LIST
 
 class MarketPDF(FPDF):
     def header(self):
@@ -97,9 +97,10 @@ def collect_all_data():
     td_data = get_td_sequential()
     pw = scrape_with_playwright()
 
-    # Screener logic (running on watchlist for brevity in email)
-    print("Running Watchlist Screener...")
-    screener_results = run_screener(WATCH_LIST)
+    # Screener logic (running on all three lists: SP500, NASDAQ100, WATCH_LIST)
+    print("Running Advanced Market Screener on all lists...")
+    combined_list = list(set(SP500_LIST + NASDAQ100_LIST + WATCH_LIST))
+    screener_results = run_screener(combined_list)
     
     # Calculate AAII Spread
     aaii_dict = pw.get("AAII", {})

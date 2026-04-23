@@ -42,7 +42,7 @@ def calculate_indicators(data):
 
     return data
 
-def apply_strategy(data):
+def apply_strategy(data, return_series=False):
     bullish_conditions = (
         (data["EMA5"] > data["EMA13"])
         & (data["MACD"] < 0)
@@ -62,6 +62,12 @@ def apply_strategy(data):
         & (data["Close"].shift(1) < data["HighLevel"].shift(1))
         & (data["RSI"].shift(1) < data["RSI"].shift(2))
     )
+
+    if return_series:
+        signals = pd.Series(0, index=data.index)
+        signals[bullish_conditions] = 1
+        signals[bearish_conditions] = -1
+        return signals
 
     if bullish_conditions.iloc[-1]:
         return 1  # Buy
