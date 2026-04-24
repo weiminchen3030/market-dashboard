@@ -39,14 +39,17 @@ with st.expander("🛠️ System Backend Status", expanded=False):
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def fetch_screener_results(list_name):
+def fetch_screener_results(list_name, target_date_str):
+    """Cache key includes date so historical scans are stored independently."""
+    from datetime import datetime as dt
+    target_date = dt.strptime(target_date_str, "%Y-%m-%d")
     if list_name == "S&P 500":
         target = SP500_LIST
     elif list_name == "NASDAQ 100":
         target = NASDAQ100_LIST
     else:
         target = WATCH_LIST
-    return run_screener(target)
+    return run_screener(target, target_date=target_date)
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
@@ -76,6 +79,23 @@ def compute_indicators(df):
     loss  = (-delta.where(delta < 0, 0)).rolling(14).mean()
     rs    = gain / loss
     df["RSI"] = 100 - (100 / (1 + rs))
+    
+    # Strategy specific for historical markers
+    df["HighLevel"] = df["High"].rolling(window=15).max()
+    df["LowLevel"] = df["Low"].rolling(window=15).min()
+    df["EMA233_Slope"] = df["EMA233"].diff()
+    
+    df["Is_Buy"] = (
+        (df["EMA5"] > df["EMA13"]) & (df["MACD"] < 0) & (df["Signal_Line"] < 0) & 
+        (df["MACD"] > df["Signal_Line"]) & (df["EMA233_Slope"] > 0) & 
+        (df["Close"].shift(1) > df["LowLevel"].shift(1)) & (df["RSI"].shift(1) > df["RSI"].shift(2))
+    )
+    
+    df["Is_Sell"] = (
+        (df["EMA5"] < df["EMA13"]) & (df["MACD"] > 0) & (df["Signal_Line"] > 0) & 
+        (df["MACD"] < df["Signal_Line"]) & (df["EMA233_Slope"] < 0) & 
+        (df["Close"].shift(1) < df["HighLevel"].shift(1)) & (df["RSI"].shift(1) < df["RSI"].shift(2))
+    )
     return df
 
 
@@ -91,7 +111,6 @@ def build_chart(symbol, signal_label):
     df = df.tail(180)
 
     is_buy = "Buy" in signal_label
-    signal_color = "#00C076" if is_buy else "#FF4B4B"
     signal_icon  = "🟢 BUY"  if is_buy else "🔴 SELL"
 
     fig = make_subplots(
@@ -130,22 +149,29 @@ def build_chart(symbol, signal_label):
             name=ema, showlegend=True
         ), row=1, col=1)
 
-    # Highlight the signal on the last bar
-    last_row = df.iloc[-1]
-    fig.add_trace(go.Scatter(
-        x=[df.index[-1]],
-        y=[last_row["Low"] * 0.975 if is_buy else last_row["High"] * 1.025],
-        mode="markers+text",
-        marker=dict(
-            symbol="triangle-up" if is_buy else "triangle-down",
-            color=signal_color, size=14
-        ),
-        text=[signal_icon],
-        textposition="bottom center" if is_buy else "top center",
-        textfont=dict(size=11, color=signal_color),
-        name="Signal",
-        showlegend=False,
-    ), row=1, col=1)
+    # Plot historical BUY signals
+    buy_signals = df[df["Is_Buy"]]
+    if not buy_signals.empty:
+        fig.add_trace(go.Scatter(
+            x=buy_signals.index,
+            y=buy_signals["Low"] * 0.95,
+            mode="markers",
+            marker=dict(symbol="triangle-up", color="#00C076", size=13),
+            name="Buy Signal",
+            showlegend=False
+        ), row=1, col=1)
+
+    # Plot historical SELL signals
+    sell_signals = df[df["Is_Sell"]]
+    if not sell_signals.empty:
+        fig.add_trace(go.Scatter(
+            x=sell_signals.index,
+            y=sell_signals["High"] * 1.05,
+            mode="markers",
+            marker=dict(symbol="triangle-down", color="#FF4B4B", size=13),
+            name="Sell Signal",
+            showlegend=False
+        ), row=1, col=1)
 
     # ── Panel 2: MACD ─────────────────────────────────────────────
     colors_hist = ["#26A69A" if v >= 0 else "#EF5350" for v in df["MACD_Hist"]]
@@ -176,6 +202,9 @@ def build_chart(symbol, signal_label):
                   line_width=0, row=3, col=1)
 
     # ── Layout ────────────────────────────────────────────────────
+    dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
+    dt_missing = [d.strftime("%Y-%m-%d") for d in dt_all.difference(df.index)]
+
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#0E1117",
@@ -188,7 +217,7 @@ def build_chart(symbol, signal_label):
         margin=dict(l=10, r=10, t=60, b=10),
         xaxis_rangeslider_visible=False,
     )
-    fig.update_xaxes(showgrid=False, zeroline=False)
+    fig.update_xaxes(rangebreaks=[dict(values=dt_missing)], showgrid=False, zeroline=False)
     fig.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.06)", zeroline=False)
 
     return fig
@@ -206,13 +235,31 @@ with col1:
         index=0
     )
 
-    if st.button("🚀 Run Live Screener", type="primary"):
+    st.markdown("#### 📅 Scan Date")
+    today = datetime.now().date()
+    selected_date = st.date_input(
+        "Select a date to scan signals for:",
+        value=today,
+        max_value=today,
+        help="Choose any past trading date to see what signals were active on that day. Defaults to today.",
+        key="screener_date"
+    )
+    selected_date_str = selected_date.strftime("%Y-%m-%d")
+
+    is_historical = selected_date < today
+    if is_historical:
+        st.caption(f"🕐 Historical mode — scanning signals as of **{selected_date_str}**")
+    else:
+        st.caption("📡 Live mode — scanning today's signals")
+
+    if st.button("🚀 Run Screener", type="primary"):
         st.session_state['last_scan'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        st.session_state['scan_date'] = selected_date_str
         st.session_state.pop('selected_ticker', None)  # reset chart on new scan
 
-        with st.spinner(f"Scanning {selected_index} universe... This may take up to a minute depending on API limits..."):
+        with st.spinner(f"Scanning {selected_index} universe for {selected_date_str}... This may take up to a minute..."):
             start_time = time.time()
-            df_results = fetch_screener_results(selected_index)
+            df_results = fetch_screener_results(selected_index, selected_date_str)
             st.session_state['screener_results'] = df_results
             st.session_state['scan_duration'] = round(time.time() - start_time, 1)
 
@@ -220,8 +267,9 @@ with col2:
     if 'screener_results' in st.session_state:
         df = st.session_state['screener_results']
 
+        scan_date_display = st.session_state.get('scan_date', today.strftime('%Y-%m-%d'))
         st.success(f"✅ Scan completed! Evaluated in {st.session_state.get('scan_duration', 0)} seconds.")
-        st.caption(f"Last updated: {st.session_state.get('last_scan')} (Results cached for 1 hour)")
+        st.caption(f"Signals as of: **{scan_date_display}** · Last run: {st.session_state.get('last_scan')} (Cached 1 hr)")
 
         if df.empty:
             st.warning("No Buy or Sell signals detected across the entire universe today.")
@@ -242,7 +290,7 @@ with col2:
                 return f'color: {c}; font-weight: bold;'
 
             st.dataframe(
-                df.style.map(styling_logic, subset=['Signal']),
+                df.style.map(styling_logic, subset=['Signal']).format({"Current Price": "{:.1f}"}),
                 use_container_width=True,
                 height=280,
                 on_select="rerun",

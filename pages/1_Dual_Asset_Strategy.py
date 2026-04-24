@@ -16,7 +16,7 @@ In pure bear markets, it ignores ordinary dips but deploys ALL cached capital di
             
 st.markdown("---")
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=1800, show_spinner=False)
 def fetch_and_process_data(ticker, lev_ticker, years=10):
     end_date = pd.Timestamp.now()
     test_start_date = end_date - pd.DateOffset(years=years)
@@ -48,6 +48,7 @@ def fetch_and_process_data(ticker, lev_ticker, years=10):
     df = calc_demark(df)
     df = calc_rsi(df)
     df = df[df.index >= test_start_date]
+    df.dropna(inplace=True)
     return df
 
 # UI layout

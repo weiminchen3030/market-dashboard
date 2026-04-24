@@ -41,11 +41,13 @@ def init_db():
             )
         '''))
 
-def get_cached_max_date(symbol):
+def get_cached_date_range(symbol):
     with engine.connect() as conn:
-        res = conn.execute(text("SELECT MAX(Date) FROM daily_prices WHERE Symbol = :sym"), {"sym": symbol})
+        res = conn.execute(text("SELECT MIN(Date), MAX(Date) FROM daily_prices WHERE Symbol = :sym"), {"sym": symbol})
         val = res.fetchone()
-        return val[0] if val and val[0] else None
+        if val and val[0] and val[1]:
+            return val[0], val[1]
+        return None, None
 
 def get_cached_data(symbol, start_date=None, end_date=None):
     query = "SELECT Date, Open, High, Low, Close, Volume FROM daily_prices WHERE Symbol = :sym"
@@ -224,13 +226,22 @@ def get_stock_data(symbol, start_date=None, end_date=None, period="1y"):
         logger.error(f"Date conversion error: {e}")
         pass
         
-    max_date_str = get_cached_max_date(symbol)
+    min_date_str, max_date_str = get_cached_date_range(symbol)
     
-    if max_date_str:
+    if max_date_str and min_date_str:
         max_date = pd.to_datetime(max_date_str)
-        # Check if the cache is missing recent data based on requested boundary
-        # Add 1 day to end_date as cushion to prevent repetitive zero-delta calls at EOD
-        if max_date < (end_date - datetime.timedelta(days=1)):
+        min_date = pd.to_datetime(min_date_str)
+        
+        # Check if the cache is missing data on either boundary
+        missing_future = max_date < (end_date - datetime.timedelta(days=1))
+        missing_past = min_date > (start_date + datetime.timedelta(days=1))
+        
+        if missing_past:
+            logger.info(f"[{symbol}] Cache missing backward history. Fetching full requested history.")
+            new_data = _fetch_from_apis(symbol, start_date, end_date + datetime.timedelta(days=1))
+            if new_data is not None and not new_data.empty:
+                save_to_cache(symbol, new_data)
+        elif missing_future:
             logger.info(f"[{symbol}] Cache partial hit. Fetching delta from {max_date_str} to {end_date.strftime('%Y-%m-%d')}")
             delta_start = max_date + datetime.timedelta(days=1)
             new_data = _fetch_from_apis(symbol, delta_start, end_date + datetime.timedelta(days=1)) # API end exclusive padding

@@ -103,12 +103,12 @@ def process_stock(symbol, end_date):
         logger.error(f"Error processing {symbol}: {e}")
         return None
 
-def run_screener(stock_list, progress_callback=None):
+def run_screener(stock_list, progress_callback=None, target_date=None):
     """
     Run strategy across a list of symbols multi-threaded.
     Yields progress dicts if a callback is passed to update Streamlit.
     """
-    end_date = datetime.datetime.now()
+    end_date = target_date if target_date else datetime.datetime.now()
     results = []
     total = len(stock_list)
     

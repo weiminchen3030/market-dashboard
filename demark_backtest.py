@@ -315,8 +315,11 @@ def plot_chart(df, trade_history, ticker, lev_ticker):
     fig.add_trace(go.Scatter(x=df.index, y=df['Baseline_Equity'], mode='lines', name='Vanilla DCA', line=dict(color='cyan', width=2)), row=3, col=1)
     fig.add_trace(go.Scatter(x=df.index, y=df['Cash_Balance_Curve'], mode='lines', name='Cash Balance', line=dict(color='lightgreen', width=1, dash='solid')), row=3, col=1)
     
+    dt_all = pd.date_range(start=df.index.min(), end=df.index.max())
+    dt_missing = [d.strftime("%Y-%m-%d") for d in dt_all.difference(df.index)]
+
     fig.update_layout(title=f"Trend DCA: {ticker} vs {lev_ticker}", template='plotly_dark', height=1000)
-    fig.update_xaxes(rangeslider_visible=False)
+    fig.update_xaxes(rangebreaks=[dict(values=dt_missing)], rangeslider_visible=False)
     fig.update_xaxes(showline=True, linewidth=1, linecolor='gray', gridcolor='rgba(255, 255, 255, 0.1)')
     
     html_filename = f"demark_chart_{ticker}.html"

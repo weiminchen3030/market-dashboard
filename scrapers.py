@@ -48,12 +48,18 @@ def get_naaim():
 
 
 def get_vix_data():
+    """Fetch VIX and VVIX directly from TradingView using requests and regex."""
     try:
-        vix  = get_stock_data("^VIX", period="2d")
-        vvix = get_stock_data("^VVIX", period="2d")
-        if not vix.empty and not vvix.empty:
-            v, vv = round(vix['Close'].iloc[-1], 2), round(vvix['Close'].iloc[-1], 2)
-            return {"VIX": v, "VVIX": vv, "VIX/VVIX": round(v / vv, 4)}
+        def fetch_tv_price(tv_sym):
+            r = requests.get(f"https://www.tradingview.com/symbols/{tv_sym}/", headers=HEADERS, timeout=10)
+            m = re.search(r'\"price\":\s*([\d\.]+)', r.text)
+            return float(m.group(1)) if m else None
+            
+        v = fetch_tv_price("CBOE-VIX")
+        vv = fetch_tv_price("CBOE-VVIX")
+        
+        if v is not None and vv is not None:
+            return {"VIX": round(v, 2), "VVIX": round(vv, 2), "VIX/VVIX": round(v / vv, 4)}
         return {"VIX": "N/A", "VVIX": "N/A", "VIX/VVIX": "N/A"}
     except Exception as e:
         logging.error(f"VIX Error: {e}")
